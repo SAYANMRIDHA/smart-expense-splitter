@@ -32,18 +32,36 @@ st.markdown("""
     -webkit-text-fill-color: transparent;
 }
 
-/* Buttons: coloured border, lift and glow on hover */
+/* Colourful gradient page background */
+.stApp {
+    background: linear-gradient(135deg, #fdf4ff 0%, #e0f2fe 50%, #fef9c3 100%);
+}
+
+/* Colourful sidebar */
+section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #ede9fe 0%, #fce7f3 100%);
+}
+
+/* Bright gradient buttons that lift and glow on hover */
 div.stButton > button {
-    border-radius: 10px;
-    border: 1px solid #7c5cff;
+    background: linear-gradient(90deg, #7c5cff, #ec4899);
+    border: none;
+    border-radius: 12px;
+    padding: 0.5rem 1.2rem;
     transition: all 0.2s ease;
 }
-div.stButton > button:hover {
-    transform: translateY(-2px);
-    background-color: #7c5cff;
+div.stButton > button p {
     color: white;
-    border-color: #7c5cff;
-    box-shadow: 0 4px 14px rgba(124, 92, 255, 0.5);
+    font-weight: 600;
+}
+div.stButton > button:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 6px 18px rgba(236, 72, 153, 0.45);
+}
+
+/* Selected tab in a bright colour */
+button[data-baseweb="tab"][aria-selected="true"] {
+    color: #7c5cff;
 }
 </style>
 """, unsafe_allow_html=True)
