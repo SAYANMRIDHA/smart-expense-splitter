@@ -1,1 +1,14 @@
-expenses.db
+# Databases & SQLite WAL temp files
+*.db
+*.db-wal
+*.db-shm
+
+# Encryption keys & Streamlit local secrets (NEVER push these)
+.splitter_key
+.streamlit/secrets.toml
+
+# Python cache & virtual environments
+__pycache__/
+*.pyc
+.venv/
+venv/
