@@ -9,6 +9,7 @@ import os
 import re
 import secrets
 import sqlite3
+import threading
 from datetime import date
 
 DB_PATH = "splitter_v2.db"
@@ -18,14 +19,44 @@ CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"   # no confusing 0/O/1/I
 # ------------------------------------------------------------
 # DATABASE SETUP
 # ------------------------------------------------------------
+class _LockedConn:
+    """Streamlit serves every visitor in its own thread but the app shares ONE database
+    connection. This wrapper makes each database call wait its turn (a lock), so two
+    people tapping buttons at the same moment cannot corrupt each other's work."""
+
+    def __init__(self, raw):
+        self._raw = raw
+        self._lock = threading.RLock()
+
+    def execute(self, *args, **kwargs):
+        with self._lock:
+            return self._raw.execute(*args, **kwargs)
+
+    def executescript(self, *args, **kwargs):
+        with self._lock:
+            return self._raw.executescript(*args, **kwargs)
+
+    def commit(self):
+        with self._lock:
+            return self._raw.commit()
+
+    def rollback(self):
+        with self._lock:
+            return self._raw.rollback()
+
+    def __getattr__(self, name):          # anything else goes straight to the real connection
+        return getattr(self._raw, name)
+
+
 def connect(path=DB_PATH):
-    conn = sqlite3.connect(path, check_same_thread=False, timeout=15.0)
-    conn.row_factory = sqlite3.Row
+    raw = sqlite3.connect(path, check_same_thread=False, timeout=15.0)
+    raw.row_factory = sqlite3.Row
     try:
-        conn.execute("PRAGMA journal_mode=WAL;")
-        conn.execute("PRAGMA synchronous=NORMAL;")
+        raw.execute("PRAGMA journal_mode=WAL;")
+        raw.execute("PRAGMA synchronous=NORMAL;")
     except sqlite3.DatabaseError:
         pass
+    conn = _LockedConn(raw)
     init_db(conn)
     return conn
 
