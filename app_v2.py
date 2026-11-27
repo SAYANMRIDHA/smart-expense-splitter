@@ -1445,12 +1445,20 @@ def make_upi_qr(upi_id, name, amount):
 
 
 def shrink_image(file_bytes, max_side=500):
-    from PIL import Image
-    img = Image.open(io.BytesIO(file_bytes)).convert("RGB")
-    img.thumbnail((max_side, max_side))
-    buf = io.BytesIO()
-    img.save(buf, format="PNG")
-    return buf.getvalue()
+    from PIL import Image, ImageOps, UnidentifiedImageError
+
+    try:
+        with Image.open(io.BytesIO(file_bytes)) as source:
+            source.load()
+            img = ImageOps.exif_transpose(source).convert("RGB")
+        img.thumbnail((max_side, max_side))
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        return buf.getvalue()
+    except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError) as exc:
+        raise ValueError(
+            "The QR image could not be read. Re-save it as a valid PNG or JPG and upload it again."
+        ) from exc
 
 
 def prepare_avatar(file_bytes):
@@ -1667,8 +1675,13 @@ def page_profile(user):
 
         up = st.file_uploader("Upload your UPI QR screenshot", type=["png", "jpg", "jpeg"], key="qr_upload")
         if up is not None and st.button("Encrypt & Save QR"):
-            lg.set_qr(conn, user["id"], encrypt_qr(shrink_image(up.getvalue())))
-            notify("QR image encrypted and saved ✅")
+            try:
+                qr_image = shrink_image(up.getvalue())
+            except ValueError as exc:
+                st.error(str(exc))
+            else:
+                lg.set_qr(conn, user["id"], encrypt_qr(qr_image))
+                notify("QR image encrypted and saved ✅")
 
 
 # ------------------------------------------------------------
