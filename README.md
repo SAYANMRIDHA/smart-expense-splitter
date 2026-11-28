@@ -2,7 +2,7 @@
 
 Hackathon problem: **SW-15 (FinTech / Databases)**
 
-**Live app:** https://smart-expense-splitter-kwxzh2jnzuk7zygpedfnyt.streamlit.app/
+**Live app:** https://sayanmridha-expense-splitter-x7-app-v2-o0hm2o.streamlit.app/
 
 ## Problem
 Roommates and friends share expenses like groceries, rent and cabs.
